@@ -1,5 +1,5 @@
-{% set version = "5.1.20201124.2112" %}
-{% set git_rev = "9e0584fb6693feafc3e01aafda47fb2ed2cf812a" %}
+{% set version = "4.0.0" %}
+{% set git_rev = "v4.0.0" %}
 
 package:
   name: mantid-framework
@@ -11,10 +11,11 @@ source:
 
 requirements:
   build:
+    - blas
     - boost {{ boost }} 
     - cmake
     - eigen
-    - gsl
+    - gsl  {{ gsl }}
     - gxx_linux-64 7.3.* [linux64]
     - h5py
     - hdf4
@@ -28,17 +29,25 @@ requirements:
     - openblas
     - openssl
     - pkg-config
-    - poco
+    - poco   {{ poco }}
     - python {{ python }}
     - tbb-devel
 
   run:
-    - boost {{ boost }}
+    - blas
+    - boost
+    - eigen
+    - gsl
     - h5py
+    - hdf4
+    - jsoncpp
     - librdkafka
+    - muparser
     - nexus
     - numpy
+    - openmp
     - openblas
+    - openssl
     - poco
     - python
     - python-dateutil

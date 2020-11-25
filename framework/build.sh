@@ -1,12 +1,17 @@
 #!/usr/bin/env bash
 
 set -ex
+OPENGL_glu_LIBRARY=/usr/lib/x86_64-linux-gnu/libGLU.so
+OPENGL_gl_LIBRARY=/usr/lib/x86_64-linux-gnu/libGL.so
+CMAKE_EXTRA_ARGS="-DOPENGL_gl_LIBRARY=${OPENGL_gl_LIBRARY} -DOPENGL_glu_LIBRARY=${OPENGL_glu_LIBRARY}"
+echo ${CMAKE_EXTRA_ARGS}
 
 mkdir build
 cd build
 
 cmake \
   -G Ninja \
+  ${CMAKE_EXTRA_ARGS} \
   -DUSE_SYSTEM_EIGEN=ON \
   -DUSE_JEMALLOC=OFF \
   -DENABLE_OPENGL=OFF \
