@@ -1,5 +1,5 @@
 
-{% set version = "6.6.20220119.1530" %}
+{% set version = "6.2.20220119.1530" %}
 {% set git_commit = "2cbb09a86e3cb09388fbefde9adfa8e649566a01" %}
 {% set python = "3.8.*" %}
 {% set boost = "" %}
