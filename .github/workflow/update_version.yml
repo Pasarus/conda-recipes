@@ -19,7 +19,7 @@ jobs:
         with:
           name: mantidproject/mantid
 
-      - name: Calculate version and grab sha as env vars
+      - name: Calculate version and git commit sha then set as env vars
         shell: bash -l {0}
         run: |
           cd mantid
@@ -44,6 +44,19 @@ jobs:
 
           cd ..
 
+      - name: Install pre-req for sha256 calculation
+        shell: bash -l {0}
+        run: |
+          sudo apt-get install curl openssl -y
+
+      - name: Calculate sha256 value then set as env var
+        shell: bash -l {0}
+        run: |      
+          export SOURCE_FILE=$LATEST_GIT_SHA.tar.gz
+          curl -LO https://github.com/mantidproject/mantid/archive/$SOURCE_FILE
+          export SHA256=$(command openssl sha256 $SOURCE_FILE)
+          rm -rf $SOURCE_FILE
+
       - name: Implant sha and version into the conda recipes
         shell: bash -l {0}
         run: |
@@ -51,6 +64,7 @@ jobs:
 
           sed -i '/{% set git_commit =/c\{% set git_commit = "'$LATEST_GIT_SHA'" %}' ./meta.yaml
           sed -i '/{% set version =/c\{% set version = "'$VERSION'" %}' ./meta.yaml
+          sed -i '/  sha256: /c\  sha256: '$SHA256'' ./meta.yaml
 
       - name: Git Commit
         uses: stefanzweifel/git-auto-commit-action@v4.9.1
