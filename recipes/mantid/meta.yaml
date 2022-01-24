@@ -1,73 +1,180 @@
-{% set version = "6.2.1" %}
+
+{% set version = "6.6.20220119.1530" %}
+{% set git_commit = "2cbb09a86e3cb09388fbefde9adfa8e649566a01" %}
+{% set python = "3.8.*" %}
+{% set boost = "" %}
 
 package:
-  name: mantid
+  name: mantid-packages
   version: {{ version }}
 
 source:
-  git_url: https://github.com/mantidproject/mantid.git
-  git_tag: main_pipeline_prototype
+  url: https://github.com/mantidproject/mantid/archive/{{ git_commit }}.tar.gz
+  sha256: 68e932e6ce42232abdce315a438feb05b9d01624038904849ff104fc740f1b29
+  # git_url: https://github.com/mantidproject/mantid
+  # git_tag: handle-versions-properly-conda-build
+
 
 build:
   number: 0
-  run_exports:
-    - {{ pin_subpackage('mantid', max_pin='x.x.x') }}
+  entry_points:
+    - workbench = workbench.app.main:main  # ["{{ environ.get('PKG_NAME', '') }}" == "mantidworkbench"]
+  osx_is_app: True  # ["{{ environ.get('PKG_NAME', '') }}" == "mantidworkbench"]
 
-requirements:
-  build:
-    - {{ compiler("c") }}
-    - {{ compiler("cxx") }}
-    - llvm-openmp  # [osx]
-    - libgomp  # [linux]
-    - ninja  # [unix]
-    - cmake
-    - git
-    - {{ cdt('mesa-libgl-devel') }}  # [linux]
-    - {{ cdt('mesa-dri-drivers') }}  # [linux]
-    - {{ cdt('libxxf86vm') }}  # [linux]
-    - {{ cdt('libx11-devel') }}  # [linux]
-    - {{ cdt('xorg-x11-proto-devel') }}  # [linux]
-  host:
-    - boost {{ boost }}
-    - eigen
-    - gsl<=2.6
-    - h5py
-    - hdf5=1.10.*
-    - jemalloc  # [unix]
-    - jsoncpp
-    - librdkafka
-    - lib3mf  # [win]
-    - muparser
-    - nexus
-    - numpy {{ numpy }}
-    - occt==7.5.*
-    - python {{ python }}
-    - poco
-    - tbb-devel=2020.2.*
-    - zlib
-    - pip
-    - openssl==1.1.1l # Pinned here to stay in line with qt
-  run:
-    - {{ pin_compatible("boost", max_pin="x.x") }}
-    - {{ pin_compatible("gsl", max_pin="x.x") }}
-    - h5py
-    - {{ pin_compatible("hdf5", max_pin="x.x") }}
-    - lib3mf  # [win]
-    - matplotlib-base
-    - nexus
-    - {{ pin_compatible("numpy", max_pin="x.x") }}
-    - {{ pin_compatible("occt", max_pin="x.x.x") }}
-    - python
-    - python-dateutil
-    - pyyaml
-    - scipy
+outputs:
+  - name: mantid
+    version: {{ version }}
+    script: build_mantid.bat  # [win]
+    script: build_mantid.sh  # [not win]
+    run_exports:
+      - {{ pin_subpackage('mantid', max_pin='x.x.x') }}
+    requirements:
+      build:
+        - {{ compiler("c") }}
+        - {{ compiler("cxx") }}
+        - llvm-openmp  # [osx]
+        - libgomp  # [linux]
+        - ninja  # [unix]
+        - cmake
+        - git
+        - {{ cdt('mesa-libgl-devel') }}  # [linux]
+        - {{ cdt('mesa-dri-drivers') }}  # [linux]
+        - {{ cdt('libxxf86vm') }}  # [linux]
+        - {{ cdt('libx11-devel') }}  # [linux]
+        - {{ cdt('xorg-x11-proto-devel') }}  # [linux]
+        - ccache # [linux and osx]
+      host:
+        - boost==1.75
+        - eigen
+        - gsl==2.6
+        - h5py 
+        - hdf5 
+        - jemalloc  # [unix]
+        - jsoncpp 1.8.4
+        - librdkafka 
+        - lib3mf  # [win]
+        - muparser
+        - nexus 
+        - numpy
+        - occt
+        - python {{ python }}
+        - poco
+        - tbb-devel 
+        - zlib
+        - pip
+      run:
+        - {{ pin_compatible("boost", max_pin="x.x") }}
+        - {{ pin_compatible("gsl", max_pin="x.x") }}
+        - h5py
+        - {{ pin_compatible("hdf5", max_pin="x.x") }}
+        - lib3mf  # [win]
+        - matplotlib-base
+        - nexus
+        - numpy
+        - {{ pin_compatible("occt", max_pin="x.x.x") }}
+        - {{ pin_compatible("python", max_pin="x.x") }}
+        - python-dateutil
+        - pyyaml
+        - scipy
+    test:
+      files:
+        - run_test_mantid.py
+      commands:
+        - python run_test_mantid.py
+
+  - name: mantidqt
+    version: {{ version }}
+    script: build_mantidqt.bat  # [win]
+    script: build_mantidqt.sh  # [not win]
+    run_exports:
+      - {{ pin_subpackage('mantidqt', max_pin='x.x.x') }}
+    requirements:
+      build:
+        - {{ compiler("c") }}
+        - {{ compiler("cxx") }}
+        - llvm-openmp  # [osx]
+        - libgomp  # [linux]
+        - ninja  # [unix]
+        - cmake
+        - git
+        - {{ cdt('mesa-libgl-devel') }}  # [linux]
+        - {{ cdt('mesa-dri-drivers') }}  # [linux]
+        - {{ cdt('libxxf86vm') }}  # [linux]
+        - {{ cdt('libx11-devel') }}  # [linux]
+        - {{ cdt('xorg-x11-proto-devel') }}  # [linux]
+        - ccache # [linux and osx]
+      host:
+        - eigen
+        - jemalloc  # [unix]
+        - mantid {{ version }}
+        - python {{ python }}
+        - pyqt
+        - qt
+        - qscintilla2
+        - setuptools
+        - tbb-devel
+      run:
+        - matplotlib-base
+        - {{ pin_compatible("qscintilla2", max_pin="x.x") }}
+        - qtpy
+        - {{ pin_compatible("python", max_pin="x.x") }}
+    test:
+      imports:
+        - mantidqt
+        - mantidqt.icons
+
+  - name: mantidworkbench
+    version: {{ version }}
+    script: build_mantidworkbench.bat  # [win]
+    script: build_mantidworkbench.sh  # [not win]
+    run_exports:
+      - {{ pin_subpackage('mantidworkbench', max_pin='x.x.x') }}
+    requirements:
+      build:
+        - {{ compiler("cxx") }}
+        - ninja  # [unix]
+        - cmake
+        - git
+        - {{ cdt('mesa-libgl-devel') }}  # [linux]
+        - {{ cdt('mesa-dri-drivers') }}  # [linux]
+        - {{ cdt('libxxf86vm') }}  # [linux]
+        - {{ cdt('libx11-devel') }}  # [linux]
+        - {{ cdt('xorg-x11-proto-devel') }}  # [linux]
+      host:
+        - boost {{ boost }}
+        - setuptools
+        - mantidqt {{ version }}
+        - mantid {{ version }}
+        - sphinx
+        - sphinx_bootstrap_theme
+        - python {{ python }}
+      run:    
+        - ipykernel <6
+        - psutil
+        - {{ pin_compatible("python", max_pin="x.x") }}
+        - python.app  # [osx]
+        - qtconsole
+        - {{ pin_compatible("setuptools", max_pin="x.x") }}
+    test:
+      imports:
+        - workbench
 
 about:
-  home: https://github.com/mantidproject/mantid
+  home: https://www.mantidproject.org
   license: GPL-3.0-or-later
-  summary: Mantid provides a framework that supports high-performance computing and visualisation of materials science data.
+  license_family: GPL
+  license_file: LICENSE.txt
+  summary: Mantid provides a python library, and GUI toolbox for supporting high-performance computing and visualisation of materials science data.
+  description: |
+    Mantid provides a framework that supports high-performance computing and visualisation of materials science data.
+    Mantid is availiable as both a python package, and a full GUI toolkit (in the form of mantidworkbench) that 
+    contains and expands upon the python package.
+  doc_url: https://www.mantidproject.org/Documentation.html
+  dev_url: https://github.com/mantidproject/mantid
 
 extra:
   recipe-maintainers:
-    - StephenSmith25
     - Pasarus
+    - martyngigg
+    - thomashampson
+    - peterfpeterson
